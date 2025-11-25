@@ -1,4 +1,4 @@
-package nuist.cn.mymoment.ui.diary
+package nuist.cn.mymoment.ui.diary.editor
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -9,17 +9,18 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import nuist.cn.mymoment.R
-import nuist.cn.mymoment.model.Diary
-import nuist.cn.mymoment.repository.DiaryRepository
-import nuist.cn.mymoment.util.LocationHelper
+import nuist.cn.mymoment.data.diary.Diary
+import nuist.cn.mymoment.data.diary.DiaryRepository
+import nuist.cn.mymoment.data.location.LocationHelper
 
 class CreateDiaryActivity : AppCompatActivity() {
 
@@ -30,11 +31,12 @@ class CreateDiaryActivity : AppCompatActivity() {
     private lateinit var locationValue: TextView
     private lateinit var saveButton: MaterialButton
     private lateinit var locationButton: MaterialButton
-    private val diaryRepository = DiaryRepository
+    private lateinit var viewModel: DiaryEditorViewModel
     private lateinit var locationHelper: LocationHelper
     private var currentDiary: Diary? = null
     private var latitude: Double? = null
     private var longitude: Double? = null
+    private var hasPopulatedInitialState = false
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
@@ -57,9 +59,12 @@ class CreateDiaryActivity : AppCompatActivity() {
             insets
         }
         locationHelper = LocationHelper(this)
+        val factory = DiaryEditorViewModelFactory(DiaryRepository)
+        viewModel = ViewModelProvider(this, factory)[DiaryEditorViewModel::class.java]
         currentDiary = intent.getParcelableExtra(EXTRA_DIARY)
+        viewModel.loadDiary(currentDiary)
         bindViews()
-        populateDiaryIfNeeded()
+        observeViewModel()
     }
 
     private fun bindViews() {
@@ -86,8 +91,20 @@ class CreateDiaryActivity : AppCompatActivity() {
         saveButton.setOnClickListener { saveDiary() }
     }
 
-    private fun populateDiaryIfNeeded() {
-        val diary = currentDiary
+    private fun observeViewModel() {
+        viewModel.editorState.observe(this) { state ->
+            currentDiary = state.initialDiary
+            if (!hasPopulatedInitialState) {
+                populateDiaryIfNeeded(state.initialDiary)
+                hasPopulatedInitialState = true
+            }
+        }
+        viewModel.isSaving.observe(this) { isSaving ->
+            saveButton.isEnabled = !isSaving
+        }
+    }
+
+    private fun populateDiaryIfNeeded(diary: Diary?) {
         if (diary == null) {
             saveButton.setText(R.string.save_diary)
             findViewById<MaterialToolbar>(R.id.toolbar).title = getString(R.string.create_diary_title)
@@ -162,17 +179,19 @@ class CreateDiaryActivity : AppCompatActivity() {
             latitude = latitude,
             longitude = longitude
         )
-        if (currentDiary == null) {
-            diaryRepository.addDiary(newDiary)
-            Toast.makeText(this, R.string.diary_saved_success, Toast.LENGTH_SHORT).show()
-            finish()
-        } else {
-            val success = diaryRepository.updateDiary(newDiary.copy(id = currentDiary!!.id))
-            if (success) {
-                Toast.makeText(this, R.string.diary_update_success, Toast.LENGTH_SHORT).show()
-                finish()
-            } else {
-                Toast.makeText(this, R.string.diary_update_failed, Toast.LENGTH_SHORT).show()
+        viewModel.saveDiary(newDiary) { result ->
+            when (result) {
+                DiaryEditorResult.Created -> {
+                    Toast.makeText(this, R.string.diary_saved_success, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                DiaryEditorResult.Updated -> {
+                    Toast.makeText(this, R.string.diary_update_success, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                DiaryEditorResult.Failed -> {
+                    Toast.makeText(this, R.string.diary_update_failed, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -187,4 +206,3 @@ class CreateDiaryActivity : AppCompatActivity() {
         const val EXTRA_DIARY = "extra_diary"
     }
 }
-

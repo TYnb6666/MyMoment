@@ -28,7 +28,7 @@
             android:parentActivityName=".ui.main.MainActivity" />
 
         <activity
-            android:name=".ui.diary.CreateDiaryActivity"
+            android:name=".ui.diary.editor.CreateDiaryActivity"
             android:exported="false"
             android:parentActivityName=".ui.main.MainActivity" />
 

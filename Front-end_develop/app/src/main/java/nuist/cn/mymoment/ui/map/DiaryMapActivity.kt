@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.amap.api.maps.AMap
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.MapView
@@ -11,13 +12,15 @@ import com.amap.api.maps.model.LatLng
 import com.amap.api.maps.model.MarkerOptions
 import com.google.android.material.appbar.MaterialToolbar
 import nuist.cn.mymoment.R
-import nuist.cn.mymoment.repository.DiaryRepository
+import nuist.cn.mymoment.data.diary.DiaryRepository
+import nuist.cn.mymoment.data.diary.Diary
 
 class DiaryMapActivity : AppCompatActivity() {
 
     private lateinit var mapView: MapView
     private lateinit var amap: AMap
-    private val repository = DiaryRepository
+    private lateinit var viewModel: DiaryMapViewModel
+    private var hasShownEmptyState = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,16 +34,27 @@ class DiaryMapActivity : AppCompatActivity() {
         toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material)
         toolbar.setNavigationOnClickListener { finish() }
 
-        loadMarkers()
+        initViewModel()
     }
 
-    private fun loadMarkers() {
-        val markers = repository.getAll().filter { it.latitude != null && it.longitude != null }
-        if (markers.isEmpty()) {
-            Toast.makeText(this, R.string.map_no_markers, Toast.LENGTH_SHORT).show()
+    private fun initViewModel() {
+        val factory = DiaryMapViewModelFactory(DiaryRepository)
+        viewModel = ViewModelProvider(this, factory)[DiaryMapViewModel::class.java]
+        viewModel.markers.observe(this) { diaries ->
+            renderMarkers(diaries)
+        }
+    }
+
+    private fun renderMarkers(diaries: List<Diary>) {
+        amap.clear()
+        if (diaries.isEmpty()) {
+            if (!hasShownEmptyState) {
+                Toast.makeText(this, R.string.map_no_markers, Toast.LENGTH_SHORT).show()
+                hasShownEmptyState = true
+            }
             return
         }
-        markers.forEach { diary ->
+        diaries.forEach { diary ->
             val position = LatLng(diary.latitude!!, diary.longitude!!)
             amap.addMarker(
                 MarkerOptions()
@@ -49,7 +63,7 @@ class DiaryMapActivity : AppCompatActivity() {
                     .snippet(diary.locationName)
             )
         }
-        val first = markers.first()
+        val first = diaries.first()
         amap.moveCamera(
             CameraUpdateFactory.newLatLngZoom(
                 LatLng(first.latitude!!, first.longitude!!),
@@ -83,4 +97,3 @@ class DiaryMapActivity : AppCompatActivity() {
         mapView.onLowMemory()
     }
 }
-

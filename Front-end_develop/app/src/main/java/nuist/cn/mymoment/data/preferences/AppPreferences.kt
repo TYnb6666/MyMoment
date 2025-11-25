@@ -1,4 +1,4 @@
-package nuist.cn.mymoment.util
+package nuist.cn.mymoment.data.preferences
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate

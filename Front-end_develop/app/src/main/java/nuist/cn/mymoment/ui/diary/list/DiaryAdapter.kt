@@ -1,4 +1,4 @@
-package nuist.cn.mymoment.ui.diary
+package nuist.cn.mymoment.ui.diary.list
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import nuist.cn.mymoment.R
-import nuist.cn.mymoment.model.Diary
+import nuist.cn.mymoment.data.diary.Diary
 
 class DiaryAdapter(
     private val listener: DiaryActionListener

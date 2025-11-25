@@ -1,13 +1,13 @@
-package nuist.cn.mymoment.ui.diary
+package nuist.cn.mymoment.ui.diary.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import nuist.cn.mymoment.model.Diary
-import nuist.cn.mymoment.repository.DiaryRepository
+import nuist.cn.mymoment.data.diary.Diary
+import nuist.cn.mymoment.data.diary.DiaryRepository
 
-class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
+class DiaryListViewModel(private val repository: DiaryRepository) : ViewModel() {
 
     private val _diaries = MutableLiveData<List<Diary>>(emptyList())
     val diaries: LiveData<List<Diary>> = _diaries
@@ -48,13 +48,13 @@ class DiaryViewModel(private val repository: DiaryRepository) : ViewModel() {
     }
 }
 
-class DiaryViewModelFactory(
+class DiaryListViewModelFactory(
     private val repository: DiaryRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DiaryViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(DiaryListViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DiaryViewModel(repository) as T
+            return DiaryListViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

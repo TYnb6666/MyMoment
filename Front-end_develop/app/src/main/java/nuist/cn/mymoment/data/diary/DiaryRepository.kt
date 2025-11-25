@@ -1,7 +1,7 @@
-package nuist.cn.mymoment.repository
+package nuist.cn.mymoment.data.diary
 
 import java.util.UUID
-import nuist.cn.mymoment.model.Diary
+import nuist.cn.mymoment.data.diary.Diary
 
 /**
  * In-memory diary repository for pure front-end demos.

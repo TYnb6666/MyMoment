@@ -14,29 +14,43 @@ MyMoment 是一个使用 Kotlin 构建的纯前端日记类 Android 应用，支
 - **轨迹地图**：整合高德地图 SDK，在单独页面展示用户曾经记录过的所有定位点。
 - **主题 & 字体**：Drawer 提供夜间模式和大字体模式切换开关，实时生效。
 
-## 目录结构
+## MVVM 目录结构与职责说明
 
 ```
-app/src/main/
-├── java/nuist/cn/mymoment/
-│   ├── model/Diary.kt                # 日记数据模型（支持 Parcelable）
-│   ├── repository/DiaryRepository.kt # 纯内存数据仓库（仅示例用途）
-│   ├── ui/
-│   │   ├── login/LoginActivity.kt    # 简单登录入口
-│   │   ├── main/MainActivity.kt      # Drawer + 列表 + 搜索 + 偏好切换
-│   │   ├── diary/
-│   │   │   ├── CreateDiaryActivity.kt
+app/src/main/java/nuist/cn/mymoment/
+├── data/                             # Model 层：数据定义 + 仓库 + 系统能力封装
+│   ├── diary/
+│   │   ├── Diary.kt                  # 日记数据模型
+│   │   └── DiaryRepository.kt        # 纯内存数据仓库（示例数据）
+│   ├── location/LocationHelper.kt    # AMap 定位辅助封装
+│   └── preferences/AppPreferences.kt # 登录/夜间/字体偏好存储
+├── ui/                               # View + ViewModel 层，按功能模块拆分
+│   ├── login/
+│   │   ├── LoginActivity.kt
+│   │   └── LoginViewModel.kt
+│   ├── main/MainActivity.kt          # 承载导航、列表、搜索、偏好入口
+│   ├── diary/
+│   │   ├── list/
 │   │   │   ├── DiaryAdapter.kt
-│   │   │   └── DiaryViewModel.kt
-│   │   └── map/DiaryMapActivity.kt   # 高德地图轨迹页面
-│   └── util/
-│       ├── AppPreferences.kt         # 登录/夜间/字体偏好存储
-│       └── LocationHelper.kt         # AMap 定位辅助类
-├── res/layout/                       # activity_main/login/create_diary/map 等布局
+│   │   │   └── DiaryListViewModel.kt
+│   │   └── editor/
+│   │       ├── CreateDiaryActivity.kt
+│   │       └── DiaryEditorViewModel.kt
+│   └── map/
+│       ├── DiaryMapActivity.kt
+│       └── DiaryMapViewModel.kt
+├── res/layout/                       # activity_main/login/diary_editor/map 等布局
 ├── res/menu/                         # Drawer、搜索栏、卡片菜单等
 ├── res/values/strings.xml            # 文案 & AMap Key 占位
 └── AndroidManifest.xml               # 权限、Activity 注册、AMap Key
 ```
+
+对应关系说明：
+- **Model/Data 层**：`data/diary`、`data/preferences`、`data/location` 目录提供实体、仓库、系统能力封装，所有可变数据状态都集中在这里。
+- **View 层**：所有 Activity、Adapter 位于 `ui/**` 子目录，分别负责登录页、主页、日记列表/编辑、地图等界面展示。例如 `LoginActivity`、`MainActivity`、`DiaryAdapter`、`CreateDiaryActivity`、`DiaryMapActivity` 等均只处理 UI 事件。
+- **ViewModel 层**：同名目录下的 `*ViewModel` 文件（如 `LoginViewModel`, `DiaryListViewModel`, `DiaryEditorViewModel`, `DiaryMapViewModel`）负责业务状态与数据交互，通过 `LiveData` 将结果回推给对应 View。
+
+借助上述分层，数据与 UI 彻底解耦：View 只订阅 ViewModel 暴露的 `LiveData`，ViewModel 再调用 `DiaryRepository`、`AppPreferences`、`LocationHelper` 等数据能力，实现单向数据流和订阅式刷新，在不改变原有功能的前提下完成了 MVVM 化改造。
 
 ## 环境要求
 

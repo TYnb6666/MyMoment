@@ -23,16 +23,16 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import nuist.cn.mymoment.R
-import nuist.cn.mymoment.model.Diary
-import nuist.cn.mymoment.repository.DiaryRepository
-import nuist.cn.mymoment.ui.diary.CreateDiaryActivity
-import nuist.cn.mymoment.ui.diary.DiaryActionListener
-import nuist.cn.mymoment.ui.diary.DiaryAdapter
-import nuist.cn.mymoment.ui.diary.DiaryViewModel
-import nuist.cn.mymoment.ui.diary.DiaryViewModelFactory
+import nuist.cn.mymoment.data.diary.Diary
+import nuist.cn.mymoment.data.diary.DiaryRepository
+import nuist.cn.mymoment.ui.diary.editor.CreateDiaryActivity
+import nuist.cn.mymoment.ui.diary.list.DiaryActionListener
+import nuist.cn.mymoment.ui.diary.list.DiaryAdapter
+import nuist.cn.mymoment.ui.diary.list.DiaryListViewModel
+import nuist.cn.mymoment.ui.diary.list.DiaryListViewModelFactory
 import nuist.cn.mymoment.ui.login.LoginActivity
 import nuist.cn.mymoment.ui.map.DiaryMapActivity
-import nuist.cn.mymoment.util.AppPreferences
+import nuist.cn.mymoment.data.preferences.AppPreferences
 
 class MainActivity : AppCompatActivity(), DiaryActionListener {
 
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), DiaryActionListener {
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var emptyState: TextView
     private lateinit var preferences: AppPreferences
-    private lateinit var viewModel: DiaryViewModel
+    private lateinit var viewModel: DiaryListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,8 +114,8 @@ class MainActivity : AppCompatActivity(), DiaryActionListener {
     }
 
     private fun setupViewModel() {
-        val factory = DiaryViewModelFactory(DiaryRepository)
-        viewModel = ViewModelProvider(this, factory)[DiaryViewModel::class.java]
+        val factory = DiaryListViewModelFactory(DiaryRepository)
+        viewModel = ViewModelProvider(this, factory)[DiaryListViewModel::class.java]
         viewModel.diaries.observe(this) { diaries ->
             swipeRefreshLayout.isRefreshing = false
             adapter.submitList(diaries)

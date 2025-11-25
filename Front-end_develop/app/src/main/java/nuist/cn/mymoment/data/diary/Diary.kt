@@ -1,4 +1,4 @@
-package nuist.cn.mymoment.model
+package nuist.cn.mymoment.data.diary
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

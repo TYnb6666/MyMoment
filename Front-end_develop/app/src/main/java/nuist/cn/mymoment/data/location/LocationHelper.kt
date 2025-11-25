@@ -1,4 +1,4 @@
-package nuist.cn.mymoment.util
+package nuist.cn.mymoment.data.location
 
 import android.content.Context
 import com.amap.api.location.AMapLocation

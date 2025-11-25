@@ -5,23 +5,24 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import nuist.cn.mymoment.R
 import nuist.cn.mymoment.ui.main.MainActivity
-import nuist.cn.mymoment.util.AppPreferences
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var usernameInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var loginButton: MaterialButton
-    private lateinit var preferences: AppPreferences
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        preferences = AppPreferences(this)
-        if (preferences.isLoggedIn()) {
+        val factory = LoginViewModelFactory(applicationContext)
+        viewModel = ViewModelProvider(this, factory)[LoginViewModel::class.java]
+        if (viewModel.hasLoggedInSession()) {
             navigateToMain()
             return
         }
@@ -31,15 +32,25 @@ class LoginActivity : AppCompatActivity() {
         passwordInput = findViewById(R.id.passwordInput)
         loginButton = findViewById(R.id.loginButton)
 
+        observeViewModel()
+
         loginButton.setOnClickListener {
             val username = usernameInput.text?.toString().orEmpty()
             val password = passwordInput.text?.toString().orEmpty()
-            if (username.isBlank() || password.isBlank()) {
-                Toast.makeText(this, R.string.login_required, Toast.LENGTH_SHORT).show()
-            } else {
-                preferences.setLoggedIn(true)
-                Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show()
-                navigateToMain()
+            viewModel.login(username, password)
+        }
+    }
+
+    private fun observeViewModel() {
+        viewModel.loginState.observe(this) { state ->
+            when {
+                state.isLoggedIn -> {
+                    Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show()
+                    navigateToMain()
+                }
+                state.error == LoginValidationError.EMPTY_FIELDS -> {
+                    Toast.makeText(this, R.string.login_required, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -49,4 +60,3 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 }
-
