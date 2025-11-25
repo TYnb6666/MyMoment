@@ -1,0 +1,82 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Android: 检查设备",
+            "type": "shell",
+            "command": "adb devices",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Android: 构建并安装应用",
+            "type": "shell",
+            "command": "./gradlew installDebug",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Android: 启动应用",
+            "type": "shell",
+            "command": "adb shell am start -n nuist.cn.mymoment/.MainActivity",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Android: 构建并运行",
+            "type": "shell",
+            "command": "./gradlew installDebug && adb shell am start -n nuist.cn.mymoment/.MainActivity",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "dependsOn": []
+        },
+        {
+            "label": "Android: 查看日志",
+            "type": "shell",
+            "command": "adb logcat | grep -i mymoment",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "isBackground": true
+        },
+        {
+            "label": "Android: 清理构建",
+            "type": "shell",
+            "command": "./gradlew clean",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Android: 卸载应用",
+            "type": "shell",
+            "command": "adb uninstall nuist.cn.mymoment",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}
+
