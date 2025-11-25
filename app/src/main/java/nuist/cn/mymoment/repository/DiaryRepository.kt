@@ -13,7 +13,7 @@ class DiaryRepository {
 
     fun getAllDiaries(callback: (List<Diary>) -> Unit) {
         db.get().addOnSuccessListener { result ->
-            val list = result.map { it.toObject(Diary::class.java) }
+            val list = result.map { it.toObject(Diary::class.java) } // transform each document to a Diary object
             callback(list)
         }
     }
