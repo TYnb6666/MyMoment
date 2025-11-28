@@ -56,5 +56,27 @@ class AuthViewModel (
 
         }
     }
+
+    fun register(
+        email: String,
+        password: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            //  begin loading, setting loading status
+            uiState.value = uiState.value.copy(isLoading = true, error = null)
+
+            val result = repository.register(email, password)
+
+            if (result.isSuccess) {
+                uiState.value = uiState.value.copy(isLoading = false, error = null)
+                onResult(true, null)
+            } else {
+                val msg = result.exceptionOrNull()?.message
+                uiState.value = uiState.value.copy(isLoading = false, error = msg)
+                onResult(false, msg)
+            }
+        }
+    }
 }
 

@@ -14,8 +14,11 @@ import nuist.cn.mymoment.viewmodel.AuthUiState
 
 
 @Composable
-fun LoginScreen(viewModel: AuthViewModel) {
-    val state by viewModel.uiState
+fun LoginScreen(
+    viewModel: AuthViewModel,
+    onGoToRegister: () -> Unit
+) {
+    val state = viewModel.uiState.value
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -58,6 +61,13 @@ fun LoginScreen(viewModel: AuthViewModel) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(if (state.isLoading) "Logging in..." else "Login")
+            }
+
+
+            Spacer(Modifier.height(8.dp))
+
+            TextButton(onClick = { onGoToRegister() }) {
+                Text("No account? Register")
             }
 
             state.error?.let {
