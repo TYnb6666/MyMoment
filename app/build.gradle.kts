@@ -70,4 +70,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.compose.runtime:runtime-livedata")
+
+    // AMap (Gaode) Location SDK
+    implementation("com.amap.api:location:latest.integration")
+    implementation("com.amap.api:map2d:latest.integration")
 }

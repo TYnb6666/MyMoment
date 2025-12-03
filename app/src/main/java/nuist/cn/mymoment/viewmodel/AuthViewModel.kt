@@ -78,5 +78,10 @@ class AuthViewModel (
             }
         }
     }
+
+    fun logout() {
+        repository.logout()
+        uiState.value = AuthUiState() // reset state so UI shows login screen
+    }
 }
 
