@@ -30,7 +30,8 @@ fun HomeScreen(
     diaryViewModel: DiaryViewModel,
     authViewModel: AuthViewModel,
     onAddDiary: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToAllEntriesMap: () -> Unit // New navigation callback
 ) {
     val diaries by diaryViewModel.diaryListState
     val error by remember { diaryViewModel.errorState }
@@ -52,6 +53,16 @@ fun HomeScreen(
                     label = { Text("Home") },
                     selected = true, // Home is always selected in this simple setup
                     onClick = { scope.launch { drawerState.close() } }
+                )
+                // Replaced Map with Place icon
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Place, contentDescription = "See in Maps") },
+                    label = { Text("See in Maps") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onNavigateToAllEntriesMap()
+                    }
                 )
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },

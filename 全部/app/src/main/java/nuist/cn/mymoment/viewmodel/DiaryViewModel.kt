@@ -9,29 +9,20 @@ import kotlinx.coroutines.launch
 import nuist.cn.mymoment.model.Diary
 import nuist.cn.mymoment.repository.DiaryRepository
 
-// ---------------------
-// UI state for editing
-// ---------------------
+
 data class DiaryEditUiState(
     val title: String = "",
     val content: String = "",
     val location: GeoPoint? = null,
-    // ---------------------
     val isSaving: Boolean = false,
     val error: String? = null,
-    val saveSuccess: Boolean = false
+    val saveComplete: Boolean = false // New state to signal completion
 )
 
-// ---------------------
-// ViewModel
-// ---------------------
 class DiaryViewModel(
     private val repository: DiaryRepository = DiaryRepository()
 ) : ViewModel() {
 
-    // -------------------------
-    // For Add Diary Screen
-    // -------------------------
     var editState = mutableStateOf(DiaryEditUiState())
         private set
 
@@ -49,7 +40,10 @@ class DiaryViewModel(
         )
     }
 
-    fun saveDiary(onSuccess: () -> Unit = {}) {
+    // ViewModel now no longer takes a callback, decoupling it from navigation.
+    fun saveDiary() {
+        if (editState.value.isSaving) return
+
         val state = editState.value
         if (state.title.isBlank() && state.content.isBlank()) {
             editState.value = state.copy(error = "Title or content cannot be empty")
@@ -58,17 +52,21 @@ class DiaryViewModel(
 
         viewModelScope.launch {
             editState.value = state.copy(isSaving = true, error = null)
+
             val diary = Diary(
                 title = state.title,
                 content = state.content,
                 location = state.location
             )
+
             val result = repository.addDiary(diary)
-            if (result.isSuccess) {
-                editState.value = DiaryEditUiState(saveSuccess = true)
-                onSuccess()
+
+            editState.value = if (result.isSuccess) {
+                // On success, update the state to signal completion.
+                // The UI will observe this and navigate.
+                state.copy(isSaving = false, saveComplete = true)
             } else {
-                editState.value = state.copy(
+                state.copy(
                     isSaving = false,
                     error = result.exceptionOrNull()?.message
                 )
@@ -76,13 +74,11 @@ class DiaryViewModel(
         }
     }
 
-    fun resetAfterSaved() {
+    // Call this to reset the state before navigating to the edit screen.
+    fun prepareNewDiary() {
         editState.value = DiaryEditUiState()
     }
-
-    // -------------------------
-    // For HomeScreen List
-    // -------------------------
+    
     var diaryListState = mutableStateOf<List<Diary>>(emptyList())
         private set
 
@@ -96,12 +92,8 @@ class DiaryViewModel(
         alreadyObserving = true
 
         repository.observeDiaries(
-            onUpdate = { list ->
-                diaryListState.value = list
-            },
-            onError = { e ->
-                errorState.value = e.message
-            }
+            onUpdate = { list -> diaryListState.value = list },
+            onError = { e -> errorState.value = e.message }
         )
     }
 

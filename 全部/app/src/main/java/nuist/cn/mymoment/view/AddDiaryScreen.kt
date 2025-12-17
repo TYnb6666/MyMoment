@@ -9,11 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import nuist.cn.mymoment.viewmodel.DiaryViewModel
 
+// This screen is now much simpler. It no longer needs any navigation callbacks or LaunchedEffects.
+// Its only responsibility is to display the UI and send events to the ViewModel.
 @Composable
 fun AddDiaryScreen(
     diaryViewModel: DiaryViewModel,
-    onBackToHome: () -> Unit,   // 保存成功后返回主页
-    onNavigateToLocationPicker: () -> Unit // 新增一个导航到选择位置页面的回调
+    onNavigateToLocationPicker: () -> Unit
 ) {
     val state by diaryViewModel.editState
 
@@ -55,7 +56,6 @@ fun AddDiaryScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 新增的选择位置按钮和显示位置的文本
             Button(
                 onClick = { onNavigateToLocationPicker() },
                 modifier = Modifier.fillMaxWidth()
@@ -65,24 +65,17 @@ fun AddDiaryScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            state.location?.let { location ->
+            state.location?.let {
                 Text(
-                    text = "Selected Location: %.4f, %.4f".format(location.latitude, location.longitude),
+                    text = "Selected Location: %.4f, %.4f".format(it.latitude, it.longitude),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
             Spacer(Modifier.height(16.dp))
 
-
             Button(
-                onClick = {
-                    diaryViewModel.saveDiary {
-                        // 保存成功回调：先重置，再回主页
-                        diaryViewModel.resetAfterSaved()
-                        onBackToHome()
-                    }
-                },
+                onClick = { diaryViewModel.saveDiary() },
                 enabled = !state.isSaving,
                 modifier = Modifier.fillMaxWidth()
             ) {

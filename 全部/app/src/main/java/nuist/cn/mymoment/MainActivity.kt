@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import nuist.cn.mymoment.view.*
 import nuist.cn.mymoment.viewmodel.AuthViewModel
 import nuist.cn.mymoment.viewmodel.DiaryViewModel
+import nuist.cn.mymoment.viewmodel.EditEvent
 
 class MainActivity : ComponentActivity() {
 
@@ -18,23 +19,27 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            // ----------------------------------------------------
-            // 1. 登录/注册状态
             var showRegister by remember { mutableStateOf(false) }
-
-            // 2. 登录后子导航状态
             var isAddingDiary by remember { mutableStateOf(false) }
-            var isPickingLocation by remember { mutableStateOf(false) } // 新增：控制地图页面
-            // ----------------------------------------------------
+            var isPickingLocation by remember { mutableStateOf(false) }
+            var isViewingAllEntriesMap by remember { mutableStateOf(false) }
+
+            // The key architectural fix is here. 
+            // The Activity, which owns the navigation state, listens for navigation events.
+            LaunchedEffect(Unit) {
+                diaryViewModel.editEvents.collect {
+                    if (it is EditEvent.NavigateBack) {
+                        isAddingDiary = false
+                    }
+                }
+            }
 
             val authState = authViewModel.uiState.value
 
             if (!authState.isLoggedIn) {
-                // 【未登录流程】→ 登录 / 注册
-
-                // 确保在登出状态下，子导航状态重置
                 isAddingDiary = false
-                isPickingLocation = false // 登出时重置
+                isPickingLocation = false
+                isViewingAllEntriesMap = false
 
                 if (showRegister) {
                     RegisterScreen(
@@ -49,33 +54,35 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             } else {
-                // 【已登录流程】→ Home / 添加日记 / 选择位置
                 when {
+                    isViewingAllEntriesMap -> {
+                        AllEntriesMapScreen(
+                            diaryViewModel = diaryViewModel,
+                            onBack = { isViewingAllEntriesMap = false }
+                        )
+                    }
                     isPickingLocation -> {
-                        // 📍 处于选择位置页面
                         LocationPickerScreen(
                             diaryViewModel = diaryViewModel,
-                            onLocationSelected = { isPickingLocation = false } // 点击确认后，返回添加日记页
+                            onLocationSelected = { isPickingLocation = false }
                         )
                     }
                     isAddingDiary -> {
-                        // ⭐ 处于添加日记页面
                         AddDiaryScreen(
                             diaryViewModel = diaryViewModel,
-                            onBackToHome = { isAddingDiary = false }, // 返回主页
-                            onNavigateToLocationPicker = { isPickingLocation = true } // 跳转到地图页
+                            onNavigateToLocationPicker = { isPickingLocation = true }
                         )
                     }
                     else -> {
-                        // ⭐ 处于主页（日记列表）
                         HomeScreen(
                             diaryViewModel = diaryViewModel,
                             authViewModel = authViewModel,
-                            // 点击“添加”按钮时，将状态设为 true，从而触发Compose重组到 AddDiaryScreen
-                            onAddDiary = { isAddingDiary = true },
-                            onLogout = {
-                                authViewModel.logout()
-                            }
+                            onAddDiary = { 
+                                diaryViewModel.prepareNewDiary()
+                                isAddingDiary = true 
+                            },
+                            onLogout = { authViewModel.logout() },
+                            onNavigateToAllEntriesMap = { isViewingAllEntriesMap = true }
                         )
                     }
                 }
