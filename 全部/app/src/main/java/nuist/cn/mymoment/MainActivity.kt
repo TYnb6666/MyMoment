@@ -8,7 +8,6 @@ import androidx.compose.runtime.*
 import nuist.cn.mymoment.view.*
 import nuist.cn.mymoment.viewmodel.AuthViewModel
 import nuist.cn.mymoment.viewmodel.DiaryViewModel
-import nuist.cn.mymoment.viewmodel.EditEvent
 
 class MainActivity : ComponentActivity() {
 
@@ -24,13 +23,12 @@ class MainActivity : ComponentActivity() {
             var isPickingLocation by remember { mutableStateOf(false) }
             var isViewingAllEntriesMap by remember { mutableStateOf(false) }
 
-            // The key architectural fix is here. 
+            // The key architectural fix is here.
             // The Activity, which owns the navigation state, listens for navigation events.
-            LaunchedEffect(Unit) {
-                diaryViewModel.editEvents.collect {
-                    if (it is EditEvent.NavigateBack) {
-                        isAddingDiary = false
-                    }
+            val editState = diaryViewModel.editState.value
+            LaunchedEffect(editState.saveComplete) {
+                if (editState.saveComplete) {
+                    isAddingDiary = false
                 }
             }
 
@@ -77,9 +75,9 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             diaryViewModel = diaryViewModel,
                             authViewModel = authViewModel,
-                            onAddDiary = { 
+                            onAddDiary = {
                                 diaryViewModel.prepareNewDiary()
-                                isAddingDiary = true 
+                                isAddingDiary = true
                             },
                             onLogout = { authViewModel.logout() },
                             onNavigateToAllEntriesMap = { isViewingAllEntriesMap = true }
