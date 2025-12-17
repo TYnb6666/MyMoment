@@ -86,3 +86,5 @@ INFO: Detected HTTP/2 connection.
 Multiple projectIds are not recommended in single project mode. Requested project ID mymoment-e8680, but the emulator is configured for coffee-spark-ai-barista-a5d3b. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
 Multiple projectIds are not recommended in single project mode. Requested project ID mymoment-e8680, but the emulator is configured for coffee-spark-ai-barista-a5d3b. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
 Multiple projectIds are not recommended in single project mode. Requested project ID mymoment-e8680, but the emulator is configured for coffee-spark-ai-barista-a5d3b. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
+*** shutting down gRPC server since JVM is shutting down
+*** server shut down
