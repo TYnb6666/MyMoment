@@ -11,6 +11,7 @@ import nuist.cn.mymoment.repository.DiaryRepository
 
 
 data class DiaryEditUiState(
+    val editingId: String? = null, //null=add new entry ; not null=edit existing id entry
     val title: String = "",
     val content: String = "",
     val location: GeoPoint? = null,
@@ -59,18 +60,37 @@ class DiaryViewModel(
                 location = state.location
             )
 
-            val result = repository.addDiary(diary)
+            val result = if (state.editingId == null) {
+                repository.addDiary(diary).map { Unit } // null id means add new entry
+            } else {
+                repository.updateDiary(state.editingId, diary)
+            }
 
             if (result.isSuccess) {
-                // ✅ 保存成功：直接触发回调
-                editState.value = state.copy(isSaving = false, saveComplete = true)
+                editState.value = DiaryEditUiState()
                 onSuccess()
             } else {
-                editState.value = state.copy(
-                    isSaving = false,
-                    error = result.exceptionOrNull()?.message
-                )
+                editState.value = state.copy(isSaving = false, error = result.exceptionOrNull()?.message)
             }
+        }
+    }
+
+    fun startEdit(diary: Diary) {
+        editState.value = DiaryEditUiState(
+            editingId = diary.id,
+            title = diary.title,
+            content = diary.content,
+            location = diary.location
+        )
+    }
+
+    fun deleteDiary(diaryId: String) {
+        viewModelScope.launch {
+            val result = repository.deleteDiary(diaryId)
+            if (result.isFailure) {
+                errorState.value = result.exceptionOrNull()?.message
+            }
+            // no need to manually refresh list，as observeDiaries will automatically refresh list
         }
     }
 

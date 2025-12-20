@@ -28,10 +28,13 @@ fun AddDiaryScreen(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "New Diary",
-                style = MaterialTheme.typography.headlineMedium
-            )
+            val isEditing = state.editingId != null
+            Text(if (isEditing) "Edit Diary" else "New Diary")
+            Text(if (state.isSaving) "Saving..." else if (isEditing) "Update" else "Save Diary")
+//            Text(
+//                text = "New Diary",
+//                style = MaterialTheme.typography.headlineMedium
+//            )
 
             Spacer(Modifier.height(16.dp))
 

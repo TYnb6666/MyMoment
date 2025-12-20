@@ -30,6 +30,8 @@ fun HomeScreen(
     diaryViewModel: DiaryViewModel,
     authViewModel: AuthViewModel,
     onAddDiary: () -> Unit,
+    onEditDiary: (Diary) -> Unit,
+    onDeleteDiary: (Diary) -> Unit,
     onLogout: () -> Unit,
     onNavigateToAllEntriesMap: () -> Unit // New navigation callback
 ) {
@@ -139,7 +141,11 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(diaries, key = { it.id }) { diary ->
-                                DiaryItem(diary)
+                                DiaryItem(
+                                    diary = diary,
+                                    onEdit = onEditDiary,
+                                    onDelete = onDeleteDiary
+                                )
                             }
                         }
                     }
@@ -161,7 +167,8 @@ fun HomeScreen(
 }
 
 @Composable
-fun DiaryItem(diary: Diary) {
+fun DiaryItem(diary: Diary, onEdit: (Diary) -> Unit, onDelete: (Diary) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
     val shape: Shape = RoundedCornerShape(12.dp)
     Card(
         modifier = Modifier
@@ -184,9 +191,27 @@ fun DiaryItem(diary: Diary) {
                     text = diary.title.ifBlank { "Untitled" },
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
-                IconButton(onClick = { /* TODO: menu: edit/delete */ }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "menu")
+                Box{
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "menu")
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false })
+                    {
+                        DropdownMenuItem(text = { Text("Edit") },
+                            onClick = {
+                            expanded = false
+                            onEdit(diary)
+                        }
+                        )
+                        DropdownMenuItem(text = { Text("Delete") },
+                            onClick = {
+                                expanded = false
+                                onDelete(diary)
+                            }
+                        )
+                    }
                 }
+
             }
 
             Spacer(modifier = Modifier.height(6.dp))

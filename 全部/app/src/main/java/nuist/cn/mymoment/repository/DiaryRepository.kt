@@ -44,6 +44,36 @@ class DiaryRepository(
         }
     }
 
+    suspend fun updateDiary(diaryID:String, diary: Diary): Result<Unit>{
+        val col = userDiariesCollection()
+            ?: return Result.failure(IllegalStateException("User not logged in"))
+        return try {
+            // only modify needed attribute and change timestamp to current time
+            val updates = hashMapOf<String, Any?>(
+                "title" to diary.title,
+                "content" to diary.content,
+                "location" to diary.location,
+                "timestamp" to System.currentTimeMillis()
+            )
+            col.document(diaryID).update(updates).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteDiary(diaryID: String): Result<Unit> {
+        val col = userDiariesCollection()
+            ?: return Result.failure(IllegalStateException("User not logged in"))
+        return try {
+            col.document(diaryID).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
     /**
      * Start realtime listener. Calls onUpdate with the latest list.
      * Returns the ListenerRegistration, and caller can remove it if needed.

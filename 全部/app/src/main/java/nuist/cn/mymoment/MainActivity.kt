@@ -81,7 +81,14 @@ class MainActivity : ComponentActivity() {
                                 isAddingDiary = true
                             },
                             onLogout = { authViewModel.logout() },
-                            onNavigateToAllEntriesMap = { isViewingAllEntriesMap = true }
+                            onNavigateToAllEntriesMap = { isViewingAllEntriesMap = true },
+                            onEditDiary = { diary ->
+                                diaryViewModel.startEdit(diary)
+                                isAddingDiary = true
+                            },
+                            onDeleteDiary = { diary ->
+                                diaryViewModel.deleteDiary(diary.id)
+                            }
                         )
                     }
                 }
