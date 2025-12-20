@@ -14,7 +14,8 @@ import nuist.cn.mymoment.viewmodel.DiaryViewModel
 @Composable
 fun AddDiaryScreen(
     diaryViewModel: DiaryViewModel,
-    onNavigateToLocationPicker: () -> Unit
+    onNavigateToLocationPicker: () -> Unit,
+    onBackToHome: () -> Unit
 ) {
     val state by diaryViewModel.editState
 
@@ -75,7 +76,12 @@ fun AddDiaryScreen(
             Spacer(Modifier.height(16.dp))
 
             Button(
-                onClick = { diaryViewModel.saveDiary() },
+                onClick = {
+                    diaryViewModel.saveDiary {
+                        diaryViewModel.prepareNewDiary() // 或者 reset
+                        onBackToHome()
+                    }
+                },
                 enabled = !state.isSaving,
                 modifier = Modifier.fillMaxWidth()
             ) {

@@ -68,7 +68,8 @@ class MainActivity : ComponentActivity() {
                     isAddingDiary -> {
                         AddDiaryScreen(
                             diaryViewModel = diaryViewModel,
-                            onNavigateToLocationPicker = { isPickingLocation = true }
+                            onNavigateToLocationPicker = { isPickingLocation = true },
+                            onBackToHome = { isAddingDiary = false }
                         )
                     }
                     else -> {

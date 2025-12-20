@@ -41,7 +41,7 @@ class DiaryViewModel(
     }
 
     // ViewModel now no longer takes a callback, decoupling it from navigation.
-    fun saveDiary() {
+    fun saveDiary(onSuccess: () -> Unit = {}) {
         if (editState.value.isSaving) return
 
         val state = editState.value
@@ -51,7 +51,7 @@ class DiaryViewModel(
         }
 
         viewModelScope.launch {
-            editState.value = state.copy(isSaving = true, error = null)
+            editState.value = state.copy(isSaving = true, error = null, saveComplete = false)
 
             val diary = Diary(
                 title = state.title,
@@ -61,12 +61,12 @@ class DiaryViewModel(
 
             val result = repository.addDiary(diary)
 
-            editState.value = if (result.isSuccess) {
-                // On success, update the state to signal completion.
-                // The UI will observe this and navigate.
-                state.copy(isSaving = false, saveComplete = true)
+            if (result.isSuccess) {
+                // ✅ 保存成功：直接触发回调
+                editState.value = state.copy(isSaving = false, saveComplete = true)
+                onSuccess()
             } else {
-                state.copy(
+                editState.value = state.copy(
                     isSaving = false,
                     error = result.exceptionOrNull()?.message
                 )
