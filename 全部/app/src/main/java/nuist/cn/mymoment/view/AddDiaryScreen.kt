@@ -81,7 +81,7 @@ fun AddDiaryScreen(
             Button(
                 onClick = {
                     diaryViewModel.saveDiary {
-                        diaryViewModel.prepareNewDiary() // 或者 reset
+                        diaryViewModel.prepareNewDiary()
                         onBackToHome()
                     }
                 },

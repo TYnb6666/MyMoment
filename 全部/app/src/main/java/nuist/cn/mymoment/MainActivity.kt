@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import nuist.cn.mymoment.view.*
 import nuist.cn.mymoment.viewmodel.AuthViewModel
 import nuist.cn.mymoment.viewmodel.DiaryViewModel
+import nuist.cn.mymoment.model.Diary
 
 class MainActivity : ComponentActivity() {
 
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
             var isAddingDiary by remember { mutableStateOf(false) }
             var isPickingLocation by remember { mutableStateOf(false) }
             var isViewingAllEntriesMap by remember { mutableStateOf(false) }
+            var selectedDiary by remember { mutableStateOf<Diary?>(null) }
 
             // The key architectural fix is here.
             // The Activity, which owns the navigation state, listens for navigation events.
@@ -53,18 +55,41 @@ class MainActivity : ComponentActivity() {
                 }
             } else {
                 when {
+
+                    //  ① detail page：highest priority
+                    selectedDiary != null -> {
+                        DiaryDetailScreen(
+                            diary = selectedDiary!!,
+                            onBack = { selectedDiary = null },
+                            onEdit = { diary ->
+                                selectedDiary = null
+                                diaryViewModel.startEdit(diary)
+                                isAddingDiary = true
+                            },
+                            onDelete = { diary ->
+                                diaryViewModel.deleteDiary(diary.id)
+                                selectedDiary = null
+                            }
+                        )
+                    }
+
+                    // ② 地图页
                     isViewingAllEntriesMap -> {
                         AllEntriesMapScreen(
                             diaryViewModel = diaryViewModel,
                             onBack = { isViewingAllEntriesMap = false }
                         )
                     }
+
+                    // ③ 选定位页
                     isPickingLocation -> {
                         LocationPickerScreen(
                             diaryViewModel = diaryViewModel,
                             onLocationSelected = { isPickingLocation = false }
                         )
                     }
+
+                    // ④ 添加 / 编辑日记页
                     isAddingDiary -> {
                         AddDiaryScreen(
                             diaryViewModel = diaryViewModel,
@@ -72,6 +97,8 @@ class MainActivity : ComponentActivity() {
                             onBackToHome = { isAddingDiary = false }
                         )
                     }
+
+                    // ⑤ 主页
                     else -> {
                         HomeScreen(
                             diaryViewModel = diaryViewModel,
@@ -82,6 +109,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onLogout = { authViewModel.logout() },
                             onNavigateToAllEntriesMap = { isViewingAllEntriesMap = true },
+                            onOpenDetail = { selectedDiary = it },
                             onEditDiary = { diary ->
                                 diaryViewModel.startEdit(diary)
                                 isAddingDiary = true

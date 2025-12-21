@@ -23,6 +23,7 @@ import nuist.cn.mymoment.viewmodel.AuthViewModel
 import nuist.cn.mymoment.viewmodel.DiaryViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.clickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +31,7 @@ fun HomeScreen(
     diaryViewModel: DiaryViewModel,
     authViewModel: AuthViewModel,
     onAddDiary: () -> Unit,
+    onOpenDetail: (Diary) -> Unit,
     onEditDiary: (Diary) -> Unit,
     onDeleteDiary: (Diary) -> Unit,
     onLogout: () -> Unit,
@@ -143,6 +145,7 @@ fun HomeScreen(
                             items(diaries, key = { it.id }) { diary ->
                                 DiaryItem(
                                     diary = diary,
+                                    onClick = { onOpenDetail(it) },
                                     onEdit = onEditDiary,
                                     onDelete = onDeleteDiary
                                 )
@@ -167,12 +170,13 @@ fun HomeScreen(
 }
 
 @Composable
-fun DiaryItem(diary: Diary, onEdit: (Diary) -> Unit, onDelete: (Diary) -> Unit) {
+fun DiaryItem(diary: Diary, onClick: (Diary) -> Unit, onEdit: (Diary) -> Unit, onDelete: (Diary) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val shape: Shape = RoundedCornerShape(12.dp)
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick(diary) } // click and open detail screen
             .clip(shape),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
