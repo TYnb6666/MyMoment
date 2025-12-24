@@ -16,7 +16,6 @@ class AuthRepository(
     private val db: FirebaseFirestore = Firebase.firestore
 ) {
 
-    text
     // Auth state observable
     fun getAuthState(): Flow<FirebaseUser?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
@@ -26,6 +25,7 @@ class AuthRepository(
         awaitClose {
             auth.removeAuthStateListener(authStateListener)
         }
+    }
 
     init {
         // Emulator setup for development

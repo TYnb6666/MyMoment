@@ -11,6 +11,9 @@ import nuist.cn.mymoment.repository.AuthRepository
 import nuist.cn.mymoment.repository.DiaryRepository
 
 
+/**
+ * UI state for the diary editing screen.
+ */
 data class DiaryEditUiState(
     val editingId: String? = null,
     val title: String = "",
@@ -21,49 +24,64 @@ data class DiaryEditUiState(
     val saveComplete: Boolean = false
 )
 
+/**
+ * ViewModel for managing diary data and business logic.
+ * It handles fetching, creating, updating, deleting, and searching diaries,
+ * and reacts to authentication state changes.
+ */
 class DiaryViewModel(
     private val diaryRepository: DiaryRepository = DiaryRepository(),
     private val authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
 
+    // Holds the state for the diary editing screen.
     var editState = mutableStateOf(DiaryEditUiState())
         private set
 
     init {
+        // Observe authentication state changes to automatically load/clear data.
         viewModelScope.launch {
             authRepository.getAuthState().collect { user ->
                 if (user != null) {
-                    // User is logged in, start observing their diaries
+                    // User is logged in, start observing their diaries.
                     startObserveDiaries()
                 } else {
-                    // User is logged out, stop observing and clear data
+                    // User is logged out, stop observing and clear all data.
                     stopObserveDiaries()
                     allDiaries.value = emptyList()
-                    updateFilteredList() // This will clear diaryListState
+                    updateFilteredList() // This will clear diaryListState.
                     errorState.value = null
                 }
             }
         }
     }
 
+    // Updates the title in the edit state.
     fun onTitleChange(newTitle: String) {
         editState.value = editState.value.copy(title = newTitle)
     }
 
+    // Updates the content in the edit state.
     fun onContentChange(newContent: String) {
         editState.value = editState.value.copy(content = newContent)
     }
 
+    // Updates the location in the edit state.
     fun onLocationChange(latLng: LatLng) {
         editState.value = editState.value.copy(
             location = GeoPoint(latLng.latitude, latLng.longitude)
         )
     }
 
+    /**
+     * Saves a new diary or updates an existing one.
+     */
     fun saveDiary() {
+        // Prevent multiple save operations if already saving.
         if (editState.value.isSaving) return
 
         val state = editState.value
+        // Basic validation: title or content must not be blank.
         if (state.title.isBlank() && state.content.isBlank()) {
             editState.value = state.copy(error = "Title or content cannot be empty")
             return
@@ -79,6 +97,7 @@ class DiaryViewModel(
                 timestamp = System.currentTimeMillis()
             )
 
+            // Decide whether to add a new diary or update an existing one.
             val result = if (state.editingId == null) {
                 diaryRepository.addDiary(diary)
             } else {
@@ -86,8 +105,10 @@ class DiaryViewModel(
             }
 
             if (result.isSuccess) {
+                // Indicate that save is complete to trigger navigation or UI changes.
                 editState.value = state.copy(isSaving = false, saveComplete = true)
             } else {
+                // Set error message on failure.
                 editState.value = state.copy(
                     isSaving = false,
                     error = result.exceptionOrNull()?.message
@@ -96,6 +117,10 @@ class DiaryViewModel(
         }
     }
 
+    /**
+     * Prepares the ViewModel to edit an existing diary by populating the edit state.
+     * @param diary The diary to be edited.
+     */
     fun startEdit(diary: Diary) {
         editState.value = DiaryEditUiState(
             editingId = diary.id,
@@ -105,70 +130,96 @@ class DiaryViewModel(
         )
     }
 
+    /**
+     * Deletes a diary by its ID.
+     */
     fun deleteDiary(diaryId: String) {
         viewModelScope.launch {
             val result = diaryRepository.deleteDiary(diaryId)
+            // If deletion fails, update the error state.
             if (result.isFailure) {
                 errorState.value = result.exceptionOrNull()?.message
             }
         }
     }
 
+    /**
+     * Resets the edit state to prepare for creating a new diary.
+     */
     fun prepareNewDiary() {
         editState.value = DiaryEditUiState()
     }
     
-    // --- 搜索逻辑开始 ---
-    var searchQuery = mutableStateOf("") // 搜索关键词
+    // --- Search Logic Start ---
+    // Holds the current search keyword from the UI.
+    var searchQuery = mutableStateOf("")
         private set
 
+    // Updates the search query.
     fun onSearchQueryChange(newQuery: String) {
         searchQuery.value = newQuery
     }
 
-    // 原始日记列表
+    // The master list of all diaries for the current user.
     private var allDiaries = mutableStateOf<List<Diary>>(emptyList())
     
-    // 过滤后的日记列表（供 UI 使用）
+    // The filtered list of diaries to be displayed in the UI, based on the search query.
     var diaryListState = mutableStateOf<List<Diary>>(emptyList())
         private set
 
+    // Filters the diary list based on the search query.
     private fun updateFilteredList() {
         val query = searchQuery.value.lowercase().trim()
         diaryListState.value = if (query.isEmpty()) {
+            // If query is empty, show all diaries.
             allDiaries.value
         } else {
+            // Otherwise, filter by title or content (case-insensitive).
             allDiaries.value.filter {
                 it.title.lowercase().contains(query) || it.content.lowercase().contains(query)
             }
         }
     }
-    // --- 搜索逻辑结束 ---
+    // --- Search Logic End ---
 
+    // Holds any error message to be displayed in the UI.
     var errorState = mutableStateOf<String?>(null)
         private set
 
+    // Flag to prevent multiple subscriptions to the diary observer.
     private var alreadyObserving = false
 
-    public fun startObserveDiaries() {
+    /**
+     * Starts observing diary changes from the repository.
+     * It's automatically called on login, but is public and guarded
+     * by a flag to prevent multiple listeners if called manually.
+     */
+    fun startObserveDiaries() {
         if (alreadyObserving) return
         alreadyObserving = true
 
         diaryRepository.observeDiaries(
             onUpdate = { list -> 
                 allDiaries.value = list
-                updateFilteredList() // 更新列表
+                updateFilteredList() // Update the UI list whenever data changes.
             },
             onError = { e -> errorState.value = e.message }
         )
     }
 
+    /**
+     * Stops observing diary changes and resets the observer flag.
+     * Automatically called on logout.
+     */
     private fun stopObserveDiaries() {
         diaryRepository.stopObserving()
         alreadyObserving = false
     }
 
-    // 当搜索词改变时，手动触发过滤
+    /**
+     * Manually triggers the filtering of diaries based on the current search query.
+     * Useful for when the search query is updated.
+     */
     fun performSearch() {
         updateFilteredList()
     }

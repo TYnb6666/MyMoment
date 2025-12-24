@@ -40,10 +40,6 @@ class AuthViewModel (
 
     fun login() {
         val state = uiState.value
-//        if (state.email.isBlank() || state.password.isBlank()){
-//            uiState.value = state.copy(error = "Email and password cannot be empty", isLoading = false)
-//            return
-//        }
 
         viewModelScope.launch {
             uiState.value = state.copy(isLoading = true, error = null)
