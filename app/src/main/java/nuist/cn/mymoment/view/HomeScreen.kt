@@ -40,12 +40,14 @@ fun HomeScreen(
     onNavigateToAllEntriesMap: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
+    // ViewModel states
     val diaries by diaryViewModel.diaryListState
     val searchQuery by diaryViewModel.searchQuery
     val error by remember { diaryViewModel.errorState }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Load diaries on start
     LaunchedEffect(Unit) {
         diaryViewModel.startObserveDiaries()
     }
@@ -84,7 +86,6 @@ fun HomeScreen(
     ) {
         Scaffold(
             topBar = {
-                // 使用 CenterAlignedTopAppBar 并移除 title，因为我们要在下面放搜索栏
                 CenterAlignedTopAppBar(
                     title = { Text("MyMoment", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
@@ -93,6 +94,7 @@ fun HomeScreen(
                         }
                     },
                     actions = {
+                        // User account menu
                         var expanded by remember { mutableStateOf(false) }
                         IconButton(onClick = { expanded = true }) {
                             Icon(Icons.Default.AccountCircle, contentDescription = "Account")
@@ -120,22 +122,23 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // --- 搜索栏开始 ---
+                // Search bar
                 SearchBar(
                     query = searchQuery,
-                    onQueryChange = { 
-                        diaryViewModel.onSearchQueryChange(it) 
-                        diaryViewModel.performSearch() // 触发搜索过滤
+                    onQueryChange = {
+                        diaryViewModel.onSearchQueryChange(it)
+                        diaryViewModel.performSearch() // Apply search filter
                     },
                     onSearch = { diaryViewModel.performSearch() },
-                    active = false, // 我们这里使用简单搜索，不需要展开 active 模式
+                    active = false, // Simple search mode
                     onActiveChange = { },
                     placeholder = { Text("Search memories...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
+                        // Clear search button
                         if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { 
-                                diaryViewModel.onSearchQueryChange("") 
+                            IconButton(onClick = {
+                                diaryViewModel.onSearchQueryChange("")
                                 diaryViewModel.performSearch()
                             }) {
                                 Icon(Icons.Default.Close, contentDescription = null)
@@ -145,12 +148,13 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    content = {} // active=false 时 content 不会被渲染
+                    content = {}
                 )
-                // --- 搜索栏结束 ---
 
+                // Diary list content
                 Box(modifier = Modifier.weight(1f)) {
                     if (diaries.isEmpty()) {
+                        // Empty state
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -159,11 +163,12 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                if (searchQuery.isEmpty()) "No diary entries yet" else "No matches found", 
+                                if (searchQuery.isEmpty()) "No diary entries yet" else "No matches found",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     } else {
+                        // Diary list
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -183,6 +188,7 @@ fun HomeScreen(
                         }
                     }
 
+                    // Error message display
                     error?.let {
                         Text(
                             text = it,
@@ -208,6 +214,7 @@ fun DiaryItem(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val shape: Shape = RoundedCornerShape(12.dp)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -221,6 +228,7 @@ fun DiaryItem(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
+            // Title and menu row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -249,6 +257,7 @@ fun DiaryItem(
 
             Spacer(modifier = Modifier.height(6.dp))
 
+            // Diary content preview
             Text(
                 text = diary.content,
                 style = MaterialTheme.typography.bodyMedium,
@@ -258,6 +267,7 @@ fun DiaryItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Footer: location and date
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -266,8 +276,8 @@ fun DiaryItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     diary.location?.let { geoPoint ->
                         Icon(
-                            Icons.Default.Place, 
-                            contentDescription = "Location", 
+                            Icons.Default.Place,
+                            contentDescription = "Location",
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -279,6 +289,7 @@ fun DiaryItem(
                     }
                 }
 
+                // Date display
                 val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                 Text(
                     text = if (diary.timestamp > 0) sdf.format(Date(diary.timestamp)) else "",

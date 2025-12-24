@@ -28,6 +28,7 @@ fun AllEntriesMapScreen(
     diaryViewModel: DiaryViewModel,
     onBack: () -> Unit
 ) {
+    // Get diary list from ViewModel
     val diaries by diaryViewModel.diaryListState
 
     Scaffold(
@@ -47,10 +48,11 @@ fun AllEntriesMapScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            // AMap map view
             AndroidView(
                 factory = { context ->
                     MapView(context).apply {
-                        onCreate(null)
+                        onCreate(null) // Initialize map
                     }
                 },
                 modifier = Modifier.fillMaxSize()
@@ -59,19 +61,21 @@ fun AllEntriesMapScreen(
                 val aMap = mapView.map
                 aMap.clear() // Clear previous markers
 
+                // Get all diary locations
                 val locations = diaries.mapNotNull { it.location }
                 if (locations.isNotEmpty()) {
+                    // Add markers for each location
                     val boundsBuilder = LatLngBounds.Builder()
                     locations.forEach { geoPoint ->
                         val latLng = LatLng(geoPoint.latitude, geoPoint.longitude)
                         aMap.addMarker(MarkerOptions().position(latLng))
                         boundsBuilder.include(latLng)
                     }
-                    // Move camera to show all markers
+                    // Zoom to show all markers
                     val bounds = boundsBuilder.build()
-                    aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150)) // 150 is padding in pixels
+                    aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150))
                 } else {
-                    // If no locations, center on a default position (e.g., Nanjing)
+                    // Default to Nanjing if no locations
                     val nanjing = LatLng(32.06, 118.78)
                     aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nanjing, 10f))
                 }

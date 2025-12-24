@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
+// Authentication repository using Firebase
 class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = Firebase.firestore
 ) {
 
+    text
+    // Auth state observable
     fun getAuthState(): Flow<FirebaseUser?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
             trySend(auth.currentUser)
@@ -23,17 +26,13 @@ class AuthRepository(
         awaitClose {
             auth.removeAuthStateListener(authStateListener)
         }
-    }
 
     init {
-        // !!! 仅在测试/开发环境使用 !!!
-        // 默认端口是 9099，地址 10.0.2.2 是 Android 模拟器访问电脑本地的地址
+        // Emulator setup for development
         try {
             auth.useEmulator("10.0.2.2", 9099)
             db.useEmulator("10.0.2.2", 8080)
         } catch (e: Exception) {
-            // 确保只运行一次或在特定条件下运行
-            // 如果模拟器未启动，这行代码可能会抛出异常
             e.printStackTrace()
         }
     }
@@ -49,10 +48,13 @@ class AuthRepository(
         }
     }
 
+    // Register user and create Firestore document
     suspend fun register(email: String, password: String): Result<Unit> {
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val user = authResult.user
+
+            // Create user profile document
             if (user != null) {
                 val userDoc = mapOf(
                     "email" to email,

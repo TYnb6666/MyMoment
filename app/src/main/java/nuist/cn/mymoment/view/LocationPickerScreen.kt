@@ -27,7 +27,7 @@ fun LocationPickerScreen(
     val context = LocalContext.current
     var selectedLatLng by remember { mutableStateOf<LatLng?>(null) }
 
-    // Use a disposable effect to manage the lifecycle of the MapView
+    // Initialize AMap MapView
     val mapView = remember {
         MapView(context).apply {
             onCreate(null)
@@ -35,28 +35,30 @@ fun LocationPickerScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
+        // AMap native view integration
         AndroidView(
             factory = { mapView },
             modifier = Modifier.fillMaxSize()
         ) { mapView ->
-            mapView.onResume() // Ensure the map is resumed
+            mapView.onResume()
             val aMap = mapView.map
 
-            // Set initial camera position
+            // Set initial view to Nanjing
             val nanjing = LatLng(32.06, 118.78)
             aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nanjing, 10f))
 
-            // Handle map clicks
+            // Map click listener for location selection
             aMap.setOnMapClickListener { latLng ->
                 selectedLatLng = latLng
                 diaryViewModel.onLocationChange(latLng)
 
-                // Clear previous markers and add a new one
+                // Clear old markers and add new one
                 aMap.clear()
                 aMap.addMarker(MarkerOptions().position(latLng))
             }
         }
 
+        // Confirm button (only enabled when location is selected)
         Button(
             onClick = { onLocationSelected() },
             modifier = Modifier
@@ -68,7 +70,7 @@ fun LocationPickerScreen(
         }
     }
 
-    // Manage lifecycle events
+    // Clean up map resources
     DisposableEffect(Unit) {
         onDispose {
             mapView.onPause()

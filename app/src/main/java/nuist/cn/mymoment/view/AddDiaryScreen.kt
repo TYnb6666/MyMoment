@@ -25,17 +25,18 @@ fun AddDiaryScreen(
     onNavigateToLocationPicker: () -> Unit,
     onBack: () -> Unit
 ) {
+    // Get current edit state from ViewModel
     val state by diaryViewModel.editState
     val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { 
+                title = {
                     Text(
                         if (state.editingId != null) "Edit Memory" else "Write Memory",
                         fontWeight = FontWeight.Bold
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -70,8 +71,8 @@ fun AddDiaryScreen(
                 .verticalScroll(scrollState)
         ) {
             Spacer(Modifier.height(8.dp))
-            
-            // Title Card
+
+            // Title input section
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -95,7 +96,7 @@ fun AddDiaryScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Content Card
+            // Content input section
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -120,7 +121,7 @@ fun AddDiaryScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Location Selector Section
+            // Location picker section
             OutlinedCard(
                 onClick = onNavigateToLocationPicker,
                 modifier = Modifier.fillMaxWidth(),
@@ -133,8 +134,8 @@ fun AddDiaryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.LocationOn, 
-                        contentDescription = "Location", 
+                        Icons.Default.LocationOn,
+                        contentDescription = "Location",
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(Modifier.width(12.dp))
@@ -159,17 +160,18 @@ fun AddDiaryScreen(
                 }
             }
 
+            // Display error message if any
             state.error?.let {
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = it, 
+                    text = it,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
-            
-            Spacer(Modifier.height(100.dp)) // Give space for FAB
+
+            Spacer(Modifier.height(100.dp)) // Space for floating button
         }
     }
 }

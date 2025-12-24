@@ -39,34 +39,39 @@ fun DiaryDetailScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Diary title section
             Text(
                 text = diary.title.ifBlank { "Untitled" },
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
+            // Date display
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             Text(
                 text = if (diary.timestamp > 0) sdf.format(Date(diary.timestamp)) else "No date",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
+            // Divider
             HorizontalDivider()
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
+            // Diary content
             Text(
                 text = diary.content,
                 style = MaterialTheme.typography.bodyLarge
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
+            // Location section (if available)
             diary.location?.let { geoPoint ->
                 Text(
                     text = "Location",

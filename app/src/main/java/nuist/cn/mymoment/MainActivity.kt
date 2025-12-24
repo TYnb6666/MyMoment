@@ -23,15 +23,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            // 设置状态：夜间模式、字体大小、卡片颜色
+            // User preference states
             val systemInDark = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(systemInDark) }
             var isLargeFont by remember { mutableStateOf(false) }
             var diaryCardColor by remember { mutableStateOf(Color(0xFFF5F5F5)) }
-            
+
+            // Color scheme based on dark mode setting
             val colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()
 
-            // 定义基于 isLargeFont 的字体排版
+            // Typography based on font size setting
             val typography = if (isLargeFont) {
                 Typography(
                     headlineLarge = Typography().headlineLarge.copy(fontSize = 38.sp),
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
             }
 
             MaterialTheme(colorScheme = colorScheme, typography = typography) {
+                // Navigation states
                 var showRegister by remember { mutableStateOf(false) }
                 var isAddingDiary by remember { mutableStateOf(false) }
                 var isPickingLocation by remember { mutableStateOf(false) }
@@ -55,6 +57,7 @@ class MainActivity : ComponentActivity() {
                 var isViewingSettings by remember { mutableStateOf(false) }
                 var selectedDiary by remember { mutableStateOf<Diary?>(null) }
 
+                // Handle diary save completion
                 val editState by diaryViewModel.editState
                 LaunchedEffect(editState.saveComplete) {
                     if (editState.saveComplete) {
@@ -63,9 +66,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Authentication state
                 val authState = authViewModel.uiState.value
 
+                // Main navigation logic
                 if (!authState.isLoggedIn) {
+                    // Not logged in - show auth screens
                     isAddingDiary = false
                     isPickingLocation = false
                     isViewingAllEntriesMap = false
@@ -85,6 +91,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 } else {
+                    // Logged in - show main app screens
                     when {
                         isViewingSettings -> {
                             SettingsScreen(
@@ -126,7 +133,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 diaryViewModel = diaryViewModel,
                                 authViewModel = authViewModel,
-                                // 核心修改：如果是夜间模式，强制卡片为黑色；否则使用用户选择的颜色
+                                // IMPORTANT: Force black cards in dark mode, otherwise use selected color
                                 diaryCardColor = if (isDarkMode) Color.Black else diaryCardColor,
                                 onAddDiary = {
                                     if (diaryViewModel.editState.value.editingId != null) {
