@@ -24,6 +24,8 @@ import nuist.cn.mymoment.viewmodel.DiaryViewModel
  * - Location-based features (map view, location picker)
  * 
  * The UI is built using Jetpack Compose and follows Material 3 design guidelines.
+ * State is managed using Compose's remember and ViewModel patterns, ensuring proper
+ * state preservation across configuration changes.
  */
 class MainActivity : ComponentActivity() {
 
@@ -42,9 +44,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // Initialize theme and UI preferences
-            // - Dark mode: follows system preference by default, can be toggled by user
-            // - Font size: supports large font mode for better accessibility
-            // - Card color: customizable diary card background color
+            // - Dark mode: follows system preference by default, can be toggled by user in Settings screen
+            // - Font size: supports large font mode for better accessibility (configurable in Settings)
+            // - Card color: customizable diary card background color (configurable in Settings)
             val systemInDark = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(systemInDark) }
             var isLargeFont by remember { mutableStateOf(false) }
@@ -163,8 +165,8 @@ class MainActivity : ComponentActivity() {
                                 diaryViewModel = diaryViewModel,
                                 authViewModel = authViewModel,
                                 // Apply card color based on theme:
-                                // - In dark mode: force black cards for better contrast
-                                // - In light mode: use user-selected custom color
+                                // - In dark mode: force black cards to ensure proper contrast and readability
+                                // - In light mode: use user-selected custom color for personalization
                                 diaryCardColor = if (isDarkMode) Color.Black else diaryCardColor,
                                 onAddDiary = {
                                     // Reset edit state if currently editing another diary
