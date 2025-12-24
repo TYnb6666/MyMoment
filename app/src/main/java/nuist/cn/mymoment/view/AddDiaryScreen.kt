@@ -81,7 +81,7 @@ fun AddDiaryScreen(
                 TextField(
                     value = state.title,
                     onValueChange = { diaryViewModel.onTitleChange(it) },
-                    placeholder = { Text("Enter a catchy title...") },
+                    placeholder = { Text("Enter a catchy title...", style = MaterialTheme.typography.titleLarge) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
                     colors = TextFieldDefaults.colors(

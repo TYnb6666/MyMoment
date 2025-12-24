@@ -78,7 +78,6 @@ fun RegisterScreen(
                     if (email.isNotBlank() && password.isNotBlank()) {
                         viewModel.register(email, password) { success, _ ->
                             if (success) {
-                                // TODO: Store username to Firestore in future
                                 onRegisterSuccess()  // Navigate back to login
                             }
                         }
