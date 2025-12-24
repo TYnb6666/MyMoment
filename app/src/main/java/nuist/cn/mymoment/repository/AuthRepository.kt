@@ -1,15 +1,29 @@
 package nuist.cn.mymoment.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = Firebase.firestore
 ) {
+
+    fun getAuthState(): Flow<FirebaseUser?> = callbackFlow {
+        val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+            trySend(auth.currentUser)
+        }
+        auth.addAuthStateListener(authStateListener)
+        awaitClose {
+            auth.removeAuthStateListener(authStateListener)
+        }
+    }
 
     init {
         // !!! 仅在测试/开发环境使用 !!!

@@ -7,6 +7,7 @@ import com.amap.api.maps2d.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.launch
 import nuist.cn.mymoment.model.Diary
+import nuist.cn.mymoment.repository.AuthRepository
 import nuist.cn.mymoment.repository.DiaryRepository
 
 
@@ -21,11 +22,29 @@ data class DiaryEditUiState(
 )
 
 class DiaryViewModel(
-    private val repository: DiaryRepository = DiaryRepository()
+    private val diaryRepository: DiaryRepository = DiaryRepository(),
+    private val authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
 
     var editState = mutableStateOf(DiaryEditUiState())
         private set
+
+    init {
+        viewModelScope.launch {
+            authRepository.getAuthState().collect { user ->
+                if (user != null) {
+                    // User is logged in, start observing their diaries
+                    startObserveDiaries()
+                } else {
+                    // User is logged out, stop observing and clear data
+                    stopObserveDiaries()
+                    allDiaries.value = emptyList()
+                    updateFilteredList() // This will clear diaryListState
+                    errorState.value = null
+                }
+            }
+        }
+    }
 
     fun onTitleChange(newTitle: String) {
         editState.value = editState.value.copy(title = newTitle)
@@ -61,9 +80,9 @@ class DiaryViewModel(
             )
 
             val result = if (state.editingId == null) {
-                repository.addDiary(diary)
+                diaryRepository.addDiary(diary)
             } else {
-                repository.updateDiary(state.editingId, diary)
+                diaryRepository.updateDiary(state.editingId, diary)
             }
 
             if (result.isSuccess) {
@@ -88,7 +107,7 @@ class DiaryViewModel(
 
     fun deleteDiary(diaryId: String) {
         viewModelScope.launch {
-            val result = repository.deleteDiary(diaryId)
+            val result = diaryRepository.deleteDiary(diaryId)
             if (result.isFailure) {
                 errorState.value = result.exceptionOrNull()?.message
             }
@@ -131,11 +150,11 @@ class DiaryViewModel(
 
     private var alreadyObserving = false
 
-    fun startObserveDiaries() {
+    public fun startObserveDiaries() {
         if (alreadyObserving) return
         alreadyObserving = true
 
-        repository.observeDiaries(
+        diaryRepository.observeDiaries(
             onUpdate = { list -> 
                 allDiaries.value = list
                 updateFilteredList() // 更新列表
@@ -144,8 +163,8 @@ class DiaryViewModel(
         )
     }
 
-    fun stopObserveDiaries() {
-        repository.stopObserving()
+    private fun stopObserveDiaries() {
+        diaryRepository.stopObserving()
         alreadyObserving = false
     }
 
