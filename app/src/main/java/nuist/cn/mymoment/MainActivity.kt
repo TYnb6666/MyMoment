@@ -14,24 +14,47 @@ import nuist.cn.mymoment.view.*
 import nuist.cn.mymoment.viewmodel.AuthViewModel
 import nuist.cn.mymoment.viewmodel.DiaryViewModel
 
+/**
+ * MainActivity is the main entry point of the MyMoment application.
+ * 
+ * This activity manages the app's navigation flow and UI state, including:
+ * - User authentication (login/register)
+ * - Diary management (create, read, update, delete)
+ * - Theme customization (dark mode, font size, card colors)
+ * - Location-based features (map view, location picker)
+ * 
+ * The UI is built using Jetpack Compose and follows Material 3 design guidelines.
+ */
 class MainActivity : ComponentActivity() {
 
+    /** ViewModel responsible for user authentication state management */
     private val authViewModel: AuthViewModel by viewModels()
+    
+    /** ViewModel responsible for diary entries state management */
     private val diaryViewModel: DiaryViewModel by viewModels()
 
+    /**
+     * Called when the activity is starting.
+     * Sets up the Compose UI with theme configuration and navigation logic.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            // 设置状态：夜间模式、字体大小、卡片颜色
+            // Initialize theme and UI preferences
+            // - Dark mode: follows system preference by default, can be toggled by user
+            // - Font size: supports large font mode for better accessibility
+            // - Card color: customizable diary card background color
             val systemInDark = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(systemInDark) }
             var isLargeFont by remember { mutableStateOf(false) }
             var diaryCardColor by remember { mutableStateOf(Color(0xFFF5F5F5)) }
             
+            // Apply Material 3 color scheme based on dark mode setting
             val colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()
 
-            // 定义基于 isLargeFont 的字体排版
+            // Configure typography based on font size preference
+            // When large font mode is enabled, all text sizes are increased for better readability
             val typography = if (isLargeFont) {
                 Typography(
                     headlineLarge = Typography().headlineLarge.copy(fontSize = 38.sp),
@@ -48,6 +71,8 @@ class MainActivity : ComponentActivity() {
             }
 
             MaterialTheme(colorScheme = colorScheme, typography = typography) {
+                // Navigation state management
+                // These flags control which screen is currently displayed
                 var showRegister by remember { mutableStateOf(false) }
                 var isAddingDiary by remember { mutableStateOf(false) }
                 var isPickingLocation by remember { mutableStateOf(false) }
@@ -55,6 +80,7 @@ class MainActivity : ComponentActivity() {
                 var isViewingSettings by remember { mutableStateOf(false) }
                 var selectedDiary by remember { mutableStateOf<Diary?>(null) }
 
+                // Monitor diary edit state to handle save completion
                 val editState by diaryViewModel.editState
                 LaunchedEffect(editState.saveComplete) {
                     if (editState.saveComplete) {
@@ -63,9 +89,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Get current authentication state
                 val authState = authViewModel.uiState.value
 
+                // Authentication flow: show login or register screen when user is not logged in
                 if (!authState.isLoggedIn) {
+                    // Reset all navigation states when logged out
                     isAddingDiary = false
                     isPickingLocation = false
                     isViewingAllEntriesMap = false
@@ -85,7 +114,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 } else {
+                    // Main navigation flow: determine which screen to display based on navigation state
                     when {
+                        // Settings screen: manage app preferences
                         isViewingSettings -> {
                             SettingsScreen(
                                 isDarkMode = isDarkMode,
@@ -97,24 +128,28 @@ class MainActivity : ComponentActivity() {
                                 onBack = { isViewingSettings = false }
                             )
                         }
+                        // Diary detail screen: view a specific diary entry
                         selectedDiary != null -> {
                             DiaryDetailScreen(
                                 diary = selectedDiary!!,
                                 onBack = { selectedDiary = null }
                             )
                         }
+                        // Map view screen: display all diary entries on a map
                         isViewingAllEntriesMap -> {
                             AllEntriesMapScreen(
                                 diaryViewModel = diaryViewModel,
                                 onBack = { isViewingAllEntriesMap = false }
                             )
                         }
+                        // Location picker screen: select location for a diary entry
                         isPickingLocation -> {
                             LocationPickerScreen(
                                 diaryViewModel = diaryViewModel,
                                 onLocationSelected = { isPickingLocation = false }
                             )
                         }
+                        // Add/Edit diary screen: create new or edit existing diary entry
                         isAddingDiary -> {
                             AddDiaryScreen(
                                 diaryViewModel = diaryViewModel,
@@ -122,13 +157,17 @@ class MainActivity : ComponentActivity() {
                                 onBack = { isAddingDiary = false }
                             )
                         }
+                        // Home screen: main diary list and management interface
                         else -> {
                             HomeScreen(
                                 diaryViewModel = diaryViewModel,
                                 authViewModel = authViewModel,
-                                // 核心修改：如果是夜间模式，强制卡片为黑色；否则使用用户选择的颜色
+                                // Apply card color based on theme:
+                                // - In dark mode: force black cards for better contrast
+                                // - In light mode: use user-selected custom color
                                 diaryCardColor = if (isDarkMode) Color.Black else diaryCardColor,
                                 onAddDiary = {
+                                    // Reset edit state if currently editing another diary
                                     if (diaryViewModel.editState.value.editingId != null) {
                                         diaryViewModel.prepareNewDiary()
                                     }
