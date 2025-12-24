@@ -15,10 +15,12 @@ fun RegisterScreen(
     onBackToLogin: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
-    var username by remember { mutableStateOf("") }   // 目前只在界面里用
+    // Form state
+    var username by remember { mutableStateOf("") }   // Currently UI-only
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // ViewModel authentication state
     val uiState = viewModel.uiState.value
 
     Box(
@@ -35,6 +37,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // Username input (optional)
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -45,6 +48,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // Email input
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -55,6 +59,7 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // Password input
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -66,14 +71,15 @@ fun RegisterScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // Register button
             Button(
                 onClick = {
-                    // 简单校验一下
+                    // Basic validation
                     if (email.isNotBlank() && password.isNotBlank()) {
                         viewModel.register(email, password) { success, _ ->
                             if (success) {
-                                // 这里可以未来加：把 username 存到 Firestore
-                                onRegisterSuccess()  // ⭐ 注册成功 → 返回登录界面
+                                // TODO: Store username to Firestore in future
+                                onRegisterSuccess()  // Navigate back to login
                             }
                         }
                     }
@@ -84,12 +90,14 @@ fun RegisterScreen(
                 Text(if (uiState.isLoading) "Registering..." else "Register")
             }
 
+            // Back to login button
             TextButton(
                 onClick = { onBackToLogin() }
             ) {
                 Text("Back to Login")
             }
 
+            // Display error message
             uiState.error?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(text = it, color = MaterialTheme.colorScheme.error)

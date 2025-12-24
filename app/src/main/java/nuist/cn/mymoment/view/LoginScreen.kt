@@ -3,21 +3,18 @@ package nuist.cn.mymoment.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import nuist.cn.mymoment.viewmodel.AuthViewModel
-import nuist.cn.mymoment.viewmodel.AuthUiState
-
 
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
     onGoToRegister: () -> Unit
 ) {
+    // Get authentication UI state from ViewModel
     val state = viewModel.uiState.value
 
     Box(
@@ -34,6 +31,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
+            // Email input
             OutlinedTextField(
                 value = state.email,
                 onValueChange = { viewModel.onEmailChange(it) },
@@ -44,6 +42,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // Password input
             OutlinedTextField(
                 value = state.password,
                 onValueChange = { viewModel.onPasswordChange(it) },
@@ -55,6 +54,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // Login button
             Button(
                 onClick = { viewModel.login() },
                 enabled = !state.isLoading,
@@ -63,13 +63,14 @@ fun LoginScreen(
                 Text(if (state.isLoading) "Logging in..." else "Login")
             }
 
-
             Spacer(Modifier.height(8.dp))
 
+            // Register navigation button
             TextButton(onClick = { onGoToRegister() }) {
                 Text("No account? Register")
             }
 
+            // Display error message
             state.error?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(text = it, color = MaterialTheme.colorScheme.error)

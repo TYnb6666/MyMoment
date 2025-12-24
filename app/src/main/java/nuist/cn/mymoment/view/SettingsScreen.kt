@@ -22,10 +22,11 @@ fun SettingsScreen(
     onDarkModeChange: (Boolean) -> Unit,
     isLargeFont: Boolean,
     onLargeFontChange: (Boolean) -> Unit,
-    selectedColor: Color,           // 新增：当前选中的颜色
-    onColorChange: (Color) -> Unit, // 新增：颜色变更回调
+    selectedColor: Color,           // Current diary card background color
+    onColorChange: (Color) -> Unit, // Callback for color selection
     onBack: () -> Unit
 ) {
+    // Preset color palette for diary cards
     val presetColors = listOf(
         Color(0xFFF5F5F5), // Default Light Gray
         Color(0xFFFFF9C4), // Soft Yellow
@@ -52,7 +53,7 @@ fun SettingsScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Night Mode
+            // Dark mode toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -61,10 +62,10 @@ fun SettingsScreen(
                 Text("Night Mode", style = MaterialTheme.typography.bodyLarge)
                 Switch(checked = isDarkMode, onCheckedChange = onDarkModeChange)
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Font Size
+
+            // Font size toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -73,17 +74,18 @@ fun SettingsScreen(
                 Text("Large Font Size", style = MaterialTheme.typography.bodyLarge)
                 Switch(checked = isLargeFont, onCheckedChange = onLargeFontChange)
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
-            // Background Color Picker
+
+            // Diary card background color picker
             Text("Diary Card Background", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Color selection circles
                 presetColors.forEach { color ->
                     Box(
                         modifier = Modifier
@@ -99,7 +101,8 @@ fun SettingsScreen(
                     )
                 }
             }
-            
+
+            // Helper text
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Pick a theme color for your diary list cards.",

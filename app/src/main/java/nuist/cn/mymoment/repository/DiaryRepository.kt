@@ -13,16 +13,16 @@ class DiaryRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = Firebase.firestore
 ) {
-
+    // Real-time listener reference
     private var listener: ListenerRegistration? = null
 
-    // NOTE: This should only be in a debug build, not in production
     init {
-        // Re-enabled emulator as per user request
+        // DEV: Use Firebase emulator
         db.useEmulator("10.0.2.2", 8080)
         FirebaseAuth.getInstance().useEmulator("10.0.2.2", 9099)
     }
 
+    // Get current user's diaries collection reference
     private fun userDiariesCollection() =
         auth.currentUser?.let { user ->
             db.collection("users")
@@ -45,11 +45,11 @@ class DiaryRepository(
         }
     }
 
-    suspend fun updateDiary(diaryID:String, diary: Diary): Result<Unit>{
+    suspend fun updateDiary(diaryID: String, diary: Diary): Result<Unit> {
         val col = userDiariesCollection()
             ?: return Result.failure(IllegalStateException("User not logged in"))
         return try {
-            // only modify needed attribute and change timestamp to current time
+            // Update fields and set new timestamp
             val updates = hashMapOf<String, Any?>(
                 "title" to diary.title,
                 "content" to diary.content,
@@ -74,17 +74,15 @@ class DiaryRepository(
         }
     }
 
-
     /**
-     * Start realtime listener. Calls onUpdate with the latest list.
-     * Returns the ListenerRegistration, and caller can remove it if needed.
+     * Start real-time listener for diary updates
+     * Returns the ListenerRegistration for cleanup
      */
     fun observeDiaries(
         onUpdate: (List<Diary>) -> Unit,
         onError: (Exception) -> Unit = {}
     ): ListenerRegistration? {
         val col = userDiariesCollection() ?: run { onUpdate(emptyList()); return null }
-
 
         listener = col
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -94,7 +92,6 @@ class DiaryRepository(
                     return@addSnapshotListener
                 }
                 val list = snapshot?.documents?.map { doc ->
-                    // map doc -> Diary, and include doc.id
                     val d = doc.toObject(Diary::class.java) ?: Diary()
                     d.copy(id = doc.id)
                 } ?: emptyList()
@@ -103,6 +100,7 @@ class DiaryRepository(
         return listener
     }
 
+    // Stop listening for real-time updates
     fun stopObserving() {
         listener?.remove()
         listener = null
